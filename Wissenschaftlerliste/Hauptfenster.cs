@@ -48,5 +48,31 @@ namespace Wissenschaftlerliste
             conn.Close(); // Logout an DB-Server schicken
             //listBoxWissenschaftler.Items.Add("plop");
         }
+
+        private void buttonLoeschen_Click(object sender, EventArgs e)
+        {
+            int index = listBoxWissenschaftler.SelectedIndex;
+            if(index < 0 || index >=alleWissenschaftler.Count)
+            {
+                // nichts markiert, aus der Funktion rausspringen
+                return;
+            }
+            Wissenschaftler zuloeschen = alleWissenschaftler[index];
+            // jetzt Datenbankskript... 
+           
+            //DB-Verbindungsobjekt mit den Verbindungsparametern anlegen
+            MySqlConnection conn = new MySqlConnection("SERVER=localhost;UID=root;PWD=VkzbcSwY3Af4ZtW;DATABASE=wissenschaftlerliste");
+            // Server kontaktieren
+            conn.Open(); // Login auf DB-Servger + using Wissenschaftler
+            // Command-Objekt erstellen
+            MySqlCommand cmd = conn.CreateCommand();
+            //SQL-Code nennen (getestetes SQL kopieren)
+            cmd.CommandText = "delete from wissenschaftler where id="+zuloeschen.ID;
+            cmd.ExecuteNonQuery();
+            //DB-Verbindung schließen
+            conn.Close(); // Logout an DB-Server schicken
+            alleWissenschaftler.RemoveAt(index);
+            listBoxWissenschaftler.Items.RemoveAt(index);
+        }
     }
 }
