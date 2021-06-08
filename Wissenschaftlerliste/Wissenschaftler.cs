@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Wissenschaftlerliste
 {
-    class Wissenschaftler
+    public class Wissenschaftler
     {
-        public int ID { get; } // nur Getter kein Setter
+        public long ID { get; } // nur Getter kein Setter
         public string Vorname { get; }
         public string Nachname { get; }
         public int Geburtsjahr { get; }
@@ -16,7 +16,7 @@ namespace Wissenschaftlerliste
 
 
 
-        public Wissenschaftler(int id, string vorname, string nachname, int geburtsjahr, string fachrichtung)
+        public Wissenschaftler(long id, string vorname, string nachname, int geburtsjahr, string fachrichtung)
         {
             ID = id;
             Vorname = vorname;

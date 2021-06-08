@@ -19,7 +19,7 @@ namespace Wissenschaftlerliste
             InitializeComponent();
             DatenLaden();
         }
-        private void DatenLaden()
+        public void DatenLaden()
         {
             //DB-Verbindungsobjekt mit den Verbindungsparametern anlegen
             MySqlConnection conn = new MySqlConnection("SERVER=localhost;UID=root;PWD=VkzbcSwY3Af4ZtW;DATABASE=wissenschaftlerliste");
@@ -46,8 +46,9 @@ namespace Wissenschaftlerliste
             reader.Close();
             //DB-Verbindung schließen
             conn.Close(); // Logout an DB-Server schicken
-            //listBoxWissenschaftler.Items.Add("plop");
         }
+        //DB-Verbindungsobjekt mit den Verbindungsparametern anlegen
+        private MySqlConnection conn = new MySqlConnection("SERVER=localhost;UID=root;PWD=VkzbcSwY3Af4ZtW;DATABASE=wissenschaftlerliste");
 
         private void buttonLoeschen_Click(object sender, EventArgs e)
         {
@@ -60,8 +61,7 @@ namespace Wissenschaftlerliste
             Wissenschaftler zuloeschen = alleWissenschaftler[index];
             // jetzt Datenbankskript... 
            
-            //DB-Verbindungsobjekt mit den Verbindungsparametern anlegen
-            MySqlConnection conn = new MySqlConnection("SERVER=localhost;UID=root;PWD=VkzbcSwY3Af4ZtW;DATABASE=wissenschaftlerliste");
+           
             // Server kontaktieren
             conn.Open(); // Login auf DB-Servger + using Wissenschaftler
             // Command-Objekt erstellen
@@ -73,6 +73,65 @@ namespace Wissenschaftlerliste
             conn.Close(); // Logout an DB-Server schicken
             alleWissenschaftler.RemoveAt(index);
             listBoxWissenschaftler.Items.RemoveAt(index);
+        }
+
+        private void buttonHinzufuegen_Click(object sender, EventArgs e)
+        {
+            string vorname = textBoxVornameEingeben.Text;
+            if(vorname.Length==0)
+            {
+                return; 
+            }
+            // todo hübschere benutzeroberfläche machen, wenn leer --> zu eingabefeld springen / highlighten
+            string nachname = textBoxNachnameEingeben.Text;
+            if(vorname.Length==0)
+            {
+                return;
+            }
+            int geburtsjahr = (int)numericUpDownGeburtsjahr.Value;
+
+            string fachrichtung = textBoxFachrichtungEingeben.Text;
+            if(fachrichtung.Length==0)
+            {
+                return;
+            }
+
+            // dann daten in datenbank hinzufügen
+            conn.Open(); // Login auf DB-Servger + using Wissenschaftler
+            // Command-Objekt erstellen
+            MySqlCommand cmd = conn.CreateCommand();
+            //SQL-Code nennen (getestetes SQL kopieren)
+            cmd.CommandText = "INSERT INTO wissenschaftler(Vorname, Nachname, Geburtsjahr, Fachrichtung) "
+                 + "VALUES(@vorname, @nachname, @geburtsjahr, @fachrichtung)";
+            
+            
+            // Werte für die Platzhalter geben
+            // Diese werden automatisch richtig verpackt
+            cmd.Parameters.AddWithValue("vorname", vorname);
+            cmd.Parameters.AddWithValue("nachname", nachname);
+            cmd.Parameters.AddWithValue("geburtsjahr", geburtsjahr);
+            cmd.Parameters.AddWithValue("fachrichtung", fachrichtung);
+            // Statement präparieren (die Platzhalter werden analysiert)
+            cmd.Prepare();
+
+            // eingegebene Daten anzeigen
+            MessageBox.Show(cmd.CommandText);
+            // Daten an Server schicken
+            cmd.ExecuteNonQuery();
+            // erst ID holen
+            long ID = cmd.LastInsertedId;
+            //DB-Verbindung schließen
+            conn.Close(); // Logout an DB-Server schicken
+
+            // Objekt erstellen und in List und ListBox hinzufügen
+            Wissenschaftler w = new Wissenschaftler(ID, vorname, nachname, geburtsjahr, fachrichtung);
+            alleWissenschaftler.Add(w);
+            listBoxWissenschaftler.Items.Add(w.ToString());
+
+            //Eingabefelder wieder leer machen
+            textBoxVornameEingeben.Text = "";
+            textBoxNachnameEingeben.Text = "";
+            textBoxFachrichtungEingeben.Text = "";
         }
     }
 }
