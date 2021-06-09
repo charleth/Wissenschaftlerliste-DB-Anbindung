@@ -9,10 +9,10 @@ namespace Wissenschaftlerliste
     public class Wissenschaftler
     {
         public long ID { get; } // nur Getter kein Setter
-        public string Vorname { get; }
-        public string Nachname { get; }
-        public int Geburtsjahr { get; }
-        public string Fachrichtung { get; }
+        public string Vorname { get; set; }
+        public string Nachname { get; set; }
+        public int Geburtsjahr { get; set; }
+        public string Fachrichtung { get; set; }
 
 
 
@@ -27,7 +27,7 @@ namespace Wissenschaftlerliste
 
         public override string ToString()
         {
-            return "" + ID + " " + Vorname + " " + Nachname + " ";
+            return "" + ID + " " + Vorname + " " + Nachname + " " + " -- " + Fachrichtung;
         }
     }
 }

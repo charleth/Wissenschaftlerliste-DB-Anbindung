@@ -75,8 +75,20 @@ namespace Wissenschaftlerliste
             listBoxWissenschaftler.Items.RemoveAt(index);
         }
 
-        private void buttonHinzufuegen_Click(object sender, EventArgs e)
+        private void buttonSpeichern_Click(object sender, EventArgs e)
         {
+            if (inBearbeitung == null)
+            {
+                Hinzufuegen();
+            }
+            else
+            {
+                AenderungenSpeichern();
+            }
+        }
+
+        private void Hinzufuegen()
+        { 
             string vorname = textBoxVornameEingeben.Text;
             if(vorname.Length==0)
             {
@@ -132,6 +144,109 @@ namespace Wissenschaftlerliste
             textBoxVornameEingeben.Text = "";
             textBoxNachnameEingeben.Text = "";
             textBoxFachrichtungEingeben.Text = "";
+        }
+
+        // Diese 2 Variablen bilden die Information "was ist in Bearbeitung?"
+        private int bearbeitungsIndex = -1; // Bearbeitungsinfo für die View
+        private Wissenschaftler inBearbeitung = null; // Bearbeitungsinfo fürs Model
+
+        private void buttonBearbeiten_Click(object sender, EventArgs e)
+        {
+            //Schauen ob ein Wissenschaftler markiert ist
+            bearbeitungsIndex = listBoxWissenschaftler.SelectedIndex;
+            if (bearbeitungsIndex < 0 || bearbeitungsIndex >= alleWissenschaftler.Count)
+            {
+                return;
+            }
+                // todo bearbeiten button inaktiv bis ausgewählt
+                // buttonBearbeiten.Enabled = true;
+            // ihn aus der Liste holen
+            inBearbeitung = alleWissenschaftler[bearbeitungsIndex];
+            //seine Daten in die Bearbeitungsfelder kopieren; 
+            textBoxVornameEingeben.Text = inBearbeitung.Vorname;
+            textBoxNachnameEingeben.Text = inBearbeitung.Nachname;
+            numericUpDownGeburtsjahr.Value = inBearbeitung.Geburtsjahr;
+            textBoxFachrichtungEingeben.Text = inBearbeitung.Fachrichtung;
+            // Buttons anpassen
+            buttonSpeichern.Text = "Speichern";
+            buttonAbbrechen.Enabled = true; 
+        }
+        private void FormularZuruecksetzen()
+        {
+            // In Bearbeitung Index und Wissenschaftler-Objekt vergessen
+            bearbeitungsIndex = -1;
+            inBearbeitung = null;
+            //Eingabefelder leeren
+            textBoxVornameEingeben.Text = "";
+            textBoxNachnameEingeben.Text = "";
+            numericUpDownGeburtsjahr.Value = 0;
+            textBoxFachrichtungEingeben.Text = "";
+            // Buttons anpassen
+            buttonSpeichern.Text = "Hinzufügen";
+            buttonAbbrechen.Enabled = false;
+        }
+        private void buttonAbbrechen_Click(object sender, EventArgs e)
+        {
+            FormularZuruecksetzen();
+        }
+
+        private void AenderungenSpeichern()
+        {
+            // Eingaben prüfen
+            string vorname = textBoxVornameEingeben.Text;
+            if(vorname.Length == 0)
+            {
+                return;
+            }
+            string nachname = textBoxNachnameEingeben.Text; 
+            if(nachname.Length == 0)
+            {
+                return;
+            }
+            // geburtsjahr
+            int geburtsjahr = (int)numericUpDownGeburtsjahr.Value;
+            // fachrichtung
+            string fachrichtung = textBoxFachrichtungEingeben.Text;
+            if(fachrichtung.Length == 0)
+            {
+                return;
+            }
+
+            //TODO in die DB speichern
+            conn.Open(); // Login auf DB-Servger + using Wissenschaftler
+            // Command-Objekt erstellen
+            MySqlCommand cmd = conn.CreateCommand();
+            //SQL-Code nennen (getestetes SQL kopieren)
+            cmd.CommandText = "UPDATE `wissenschaftler` SET `vorname`=@vorname,`nachname`=@nachname,`geburtsjahr`=@geburtsjahr,`fachrichtung`=@fachrichtung WHERE id=@id";
+
+
+            // Werte für die Platzhalter geben
+            // Diese werden automatisch richtig verpackt
+            cmd.Parameters.AddWithValue("vorname", vorname);
+            cmd.Parameters.AddWithValue("nachname", nachname);
+            cmd.Parameters.AddWithValue("geburtsjahr", geburtsjahr);
+            cmd.Parameters.AddWithValue("fachrichtung", fachrichtung);
+            cmd.Parameters.AddWithValue("id", inBearbeitung.ID);
+            // Statement präparieren (die Platzhalter werden analysiert)
+            cmd.Prepare();
+
+            // eingegebene Daten anzeigen
+            MessageBox.Show(cmd.CommandText);
+            // Daten an Server schicken
+            cmd.ExecuteNonQuery();
+            // erst ID holen
+            long ID = cmd.LastInsertedId;
+            //DB-Verbindung schließen
+            conn.Close(); // Logout an DB-Server schicken
+            // in den Speicher speichern
+            inBearbeitung.Vorname = vorname;
+            inBearbeitung.Nachname = nachname;
+            inBearbeitung.Geburtsjahr = geburtsjahr;
+            inBearbeitung.Fachrichtung = fachrichtung;
+            //anzeige aktualisieren
+            listBoxWissenschaftler.Items[bearbeitungsIndex] = inBearbeitung.ToString();
+            //Bearbeitungs Index und Objekt vergessen, Eingabefelder leeren, Buttons zurücksetzen
+            FormularZuruecksetzen();
         }
     }
 }
